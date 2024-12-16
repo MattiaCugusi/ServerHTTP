@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URLDecoder;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -19,27 +20,19 @@ public class Main {
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
             String[] firstline = in.readLine().split(" ");
-            String method = firstline[0];
             String resource = firstline[1];
-            String version = firstline[2];
             String header;
             do{
                 header = in.readLine();
             }while(!header.isEmpty());
-            String type;
+            resource = URLDecoder.decode(resource, "UTF-8");
             if (resource.equals("/")) {
                 resource = "/index.html";
             }
-            File file = new File("htdocs" + resource);
+            File file = new File("Cugusi_progettoPersonale" + resource);
             if(file.exists()){
-                String[] splitResource = resource.split("\\.");
-                if (splitResource[1].equals("html")) {
-                    type = "text/html";
-                }else {
-                    type = "text/plain";
-                }
                 out.writeBytes("HTTP/1.1 200 OK\n");
-                out.writeBytes("Content-Type: " + type + "\n");
+                out.writeBytes("Content-Type: " + getContentType(resource) + "\n");
                 out.writeBytes("Content-Length: " + file.length() + "\n");
                 out.writeBytes("\n");
                 InputStream input = new FileInputStream(file);
@@ -57,14 +50,14 @@ public class Main {
                 out.writeBytes("");
             }
             System.out.println("richiesta terminata");
+            s.close();
         }
     }
 
-    private static String getContentType(File f){
-        String[] s = f.getName().split("\\.");
-        String ext = s[s.length - 1];
+    private static String getContentType(String resource){
+        String[] s = resource.split("\\.");
 
-        switch (ext){
+        switch (s[1]){
             case "html":
             case "htm":
                 return "text/html";
@@ -83,7 +76,7 @@ public class Main {
             
             default:
                  return "";
-                 
+
         }
 
     }
